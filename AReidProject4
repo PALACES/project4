@@ -1,0 +1,422 @@
+//// Alexander Reid
+//// Proj #3
+//// CST 112 EVE
+
+//// 5 balls, cue, 4 buttons ////
+Ball a,b,c,d,e, cue;
+Button a1, b1, c1, d1;
+
+//// OTHER GLOBALS:  strings, pool table, etc ////
+String news=   "Click any ball to reset it to right half of table.  ('r' resets all)";
+String author=  "Alexander Reid";
+String display= "Score:";
+
+float left=50, right=800, top=400, bottom=400;        // Table boundaries
+float middle2=250;
+boolean wall=true;
+boolean ratShow=false;
+boolean birdmove=false;
+boolean bombdrop=false;
+float ratX = left;
+float ratDX = 8;
+float ratY= random(top, bottom);
+float birdX = 0;
+float bombY = 110;
+float bombDY = 0;
+
+int tableRed=150, tableGreen=250, tableBlue=150;      // Green pool table
+int score=0,m=0,k=0;
+int count= 0;
+
+
+//// SETUP:  size, table, balls, buttons
+void setup() {
+    size ( 640, 480 );
+    left = ((width/2)-200);
+    top = ((height/2)-75); 
+    right = ((width/2)+200);
+    bottom = ((height/2)+75);
+    middle2 = (width/2);
+    
+    a = new Ball();
+    a.r= 131;a.g=183;a.b=224; a.name= "1";
+    b = new Ball();
+    b.r=209;b.g= 173;b.b=208; b.name= "2";
+    c = new Ball();
+    c.r=224;c.g= 88; c.b= 109; c.name= "3";
+    d = new Ball();
+    d.r= 188; d.g=176;d.b=165; d.name= "4";
+    e = new Ball();
+    e.r= 167;e.g=227; e.b=212; e.name= "5";
+    cue = new Ball();
+    cue.r= 255; cue.g= 255; cue.b= 255;
+    
+    a1 = new Button();
+    a1.name= "Reset"; a1.x=85; a1.y=40; a1.w=60; a1.h=40;
+    b1 = new Button();
+    b1.name= "Wall"; b1.x=150; b1.y=40; b1.w=60; b1.h=40;
+    c1 = new Button();
+    c1.name= "Bird"; c1.x=215; c1.y=40; c1.w=60; c1.h=40;
+    d1 = new Button();
+    d1.name= "Rat"; d1.x=280; d1.y=40; d1.w=60; d1.h=40;
+    
+    reset() ;
+}
+
+// Default settings
+void reset() {
+  score= 0;
+  wall=true;
+  ratX=left;
+  ratShow=false;
+  ratY=height - 100;
+  tableRed=150; tableGreen=250; tableBlue=150;
+  
+  // Ball spawn position
+  a.x= random(middle2+40, right); a.y= random(top, bottom);
+  b.x= random(middle2+40, right); b.y= random(top, bottom);
+  c.x= random(middle2+40, right); c.y= random(top,bottom);
+  d.x= random(middle2+40, right); d.y= random(top,bottom);
+  e.x= random(middle2+40, right); e.y= random(top,bottom);
+  cue.x= (left+right)/3;         cue.y= (top+bottom)/2;
+  
+  // Ball starting speed
+  a.dx=  random( -3,3 );   a.dy=  random( -3,3 );
+  b.dx=  random( -3,3 );   b.dy=  random( -3,3 );
+  c.dx=  random( -3,3 );   c.dy=  random( -3,3 );
+  d.dx=  random( -3,3 );   d.dy=  random( -3,3 );
+  e.dx=  random( -3,3 );   e.dy=  random( -3,3 );
+  cue.dx= 0;               cue.dy= 0;
+}
+
+//// Draw scene
+void draw() {
+  background( 250,250,200 );
+  rectMode( CORNERS );
+  table( left, top, right, bottom );  
+  balls();   
+  grass();
+  clouds();
+  count += 1;
+  if (key == 'm' && ratX >left ) { rat(); }
+  if (ratShow = true && ratX > left) { rat(); }
+  bomb();
+  if (birdmove == true) { bird(); }
+  messages();
+  buttons();
+}
+
+//// Methods for key presses
+void keyPressed() {
+  if (key == 'q') { exit();  }
+  if (key == 'r') { reset(); }
+  if (key == 'w') { wall=false; }  // Remove wall
+  if (key == 'p') { tableRed= 250; tableGreen=150; tableBlue=235; } // Pink table
+
+  /// Reset ball position & score
+  if (key == '1') { a.reset(); score -= 5; }
+  if (key == '2') { b.reset(); score -= 5; }
+  if (key == '3') { c.reset(); score -= 5; }
+  if (key == '4') { d.reset(); score -= 5; }
+  if (key == '5') { e.reset(); score -= 5; }
+  if (key == 'c') { cue.x= (left+right)/3; cue.y= (top+bottom)/2; cue.dx=0; cue.dy=0; score -= 5; }
+}
+
+/// Reset balls with clicks 
+void mouseClicked() {
+  if ( dist(a.x,a.y, mouseX,mouseY) < 18) { a.reset(); score -= 5; }
+  if ( dist(b.x,b.y, mouseX,mouseY) < 18) { b.reset(); score -= 5; }
+  if ( dist(c.x,c.y, mouseX,mouseY) < 18) { c.reset(); score -= 5; }
+  if ( dist(d.x,d.y, mouseX,mouseY) < 18) { d.reset(); score -= 5; }
+  if ( dist(e.x,e.y, mouseX,mouseY) < 18) { e.reset(); score -= 5; }
+  if ( dist(cue.x,cue.y, mouseX,mouseY) < 18) { 
+    cue.x= (left+right)/3; cue.y= (top+bottom)/2; cue.dx=0; cue.dy=0; }
+    
+  if ( dist(ratX,ratY, mouseX,mouseY) < 30) { ratX=left; score += 50; }
+
+    
+
+  //Reset 
+  if ( mouseX > a1.x && mouseX < a1.x+a1.w &&
+    mouseY > a1.y && mouseY < a1.y+a1.h ) {
+      reset(); 
+    }
+  // Wall
+  if ( mouseX > b1.x && mouseX < b1.x+b1.w &&
+    mouseY > b1.y && mouseY < b1.y+b1.h ) {
+      wall=false;
+    }
+  // Bird & Bomb
+  if ( mouseX > c1.x && mouseX < c1.x+c1.w &&
+    mouseY > c1.y && mouseY < c1.y+c1.h && birdmove == true ) {
+      drop();
+    }    
+  // Bird Flight
+  if ( mouseX > c1.x && mouseX < c1.x+c1.w &&
+    mouseY > c1.y && mouseY < c1.y+c1.h ) {
+      birdmove=true;
+    }
+  // Rat Move
+  if ( mouseX > d1.x && mouseX < d1.x+d1.w &&
+    mouseY > d1.y && mouseY < d1.y+d1.h ) {
+      rat();
+    }    
+}
+
+//// Scene: Draw table and boolean Wall
+void table( float east, float north, float west, float south ) {
+  fill( tableRed, tableGreen, tableBlue );    // pool table
+  strokeWeight(20);
+  stroke( 201, 160, 57 );      // Brown walls
+  rect( east-70, north-70, west+70, south+70 );
+
+  // Start with a WALL down the middle2 of the table
+  if (wall==true) {
+    float middle2=  (east+west)/2;    
+    stroke( 113, 104, 79 );
+    line( middle2,north-20, middle2,south+20 );
+  }
+  stroke(0);
+  strokeWeight(1);
+}
+
+void bird() {
+  if (birdX > width) {
+    birdX = 0; birdmove=false; }
+  fill(255);
+  ellipse(birdX,100,35,15);
+  ellipse(birdX+16,94,30,15);
+
+  if (count/30 % 2 == 0) {
+    triangle(birdX-10,97, birdX,77, birdX+10,97); }
+    else {
+      triangle(birdX-10,103, birdX,123, birdX+10,103); }
+  birdX += 4;  
+}
+  
+void bomb() {
+  if (bombdrop == true) {
+    fill(0,0,0);
+    ellipse(birdX-10, bombY, 10,10);
+    bombY *= bombDY;
+  }
+}
+
+void drop() {
+  bombdrop = true;
+  bombY = 112;
+  bombDY = 1.03;
+}
+
+// Shows rat
+void rat() {
+  fill(255);
+  ratX+=4;
+  if (ratShow == true) {
+    if (count % 30 > 15) {
+      //these are all of the rat's other body parts.
+      fill(0); 
+      ellipse(ratX-22, ratY-15, 60, 30);
+      ellipse(ratX, ratY-20, 30, 30);
+      ellipse(ratX+10, ratY-20, 30, 20); 
+      ellipse(ratX-5, ratY-30, 30, 30);
+      fill(252, 106, 202);
+      line(ratX-80, ratY-30, ratX-40, ratY-20); 
+      ellipse(ratX+26, ratY-20, 7, 7);        
+      fill(255);
+      arc(ratX+8.5, ratY-25, 7, 7, 0, PI); 
+      strokeWeight(5);   
+      //these are the rat's legs
+      line(ratX-5, ratY-5, ratX+5, ratY+5);   
+      line(ratX-15, ratY-5, ratX-5, ratY+5);  
+      line(ratX-30, ratY-5, ratX-18, ratY+5); 
+      line(ratX-45, ratY-5, ratX-31, ratY+5); 
+  } else {
+      //these are the second frame of the other rat's body parts
+      fill(0);
+      ellipse(ratX-22, ratY-15, 60, 30); 
+      ellipse(ratX, ratY-20, 30, 30);
+      ellipse(ratX+10, ratY-20, 30, 20);
+      ellipse(ratX-5, ratY-30, 30, 30);
+      fill(255);
+      arc(ratX+8.5, ratY-25, 7, 7, 0, PI); 
+      fill(252, 106, 202);
+      line(ratX-80, ratY-20, ratX-40, ratY-20);
+      fill(252, 106, 202);
+      ellipse(ratX+26, ratY-20, 7, 7);     
+      strokeWeight(5);
+     //these are the second frames for the rat's legs
+      line(ratX-5, ratY+5, ratX+5, ratY-5);   
+      line(ratX-15, ratY+5, ratX-5, ratY-5);
+      line(ratX-30, ratY+5, ratX-18, ratY-5);
+      line(ratX-45, ratY+5, ratX-31, ratY-5);
+     ratX = ratX++;
+    }
+  }
+  //resets rat's position to left side of screen
+  if (ratX > width) {
+    ratX = 1;
+  }
+  
+  if ( dist(a.x,a.y, ratX,ratY) < 10) { ratX += 15; a.dx=0; a.dy=0; score -= 10; }
+  if ( dist(b.x,b.y, ratX,ratY) < 10) { ratX += 15; b.dx=0; b.dy=0; score -= 10; }
+  if ( dist(c.x,c.y, ratX,ratY) < 10) { ratX += 15; c.dx=0; c.dy=0; score -= 10; }
+  if ( dist(d.x,d.y, ratX,ratY) < 10) { ratX += 15; d.dx=0; d.dy=0; score -= 10; }
+  if ( dist(e.x,e.y, ratX,ratY) < 10) { ratX += 15; e.dx=0; e.dy=0; score -= 10; }
+  if ( dist(cue.x,cue.y, ratX,ratY) < 10) { ratX += 15; cue.dx=0; cue.dy=0; score -= 10; }
+
+   }
+// Messages
+void messages() {
+  fill(0);
+  text( news, width/9, 30 );
+  text( author, 10, height-5 );
+  text( display, width-200, 30);
+  text( score, width-140, 30);
+}
+
+// Grass matrix
+void grass() {
+  stroke(40,165,60);
+  strokeWeight(2);
+  int x = 0;
+  float y = bottom + 83;
+  while (y < height+10) {
+    for (x=0; x<width+10; x += 7) {
+      line(x,y, x+7, y-7);
+    }
+    y += 3; 
+  strokeWeight(1);
+  }
+}
+
+// Clouds 
+void clouds() {
+  for (int i=100; i<width; i += 100) {
+    int r = 130;
+    noStroke();
+    fill(230,230,230);
+    ellipse(i+20,r-10, 30,30);
+    ellipse(i-10,r-7, 20,20);
+    ellipse(i+10,r, 70,20);
+  }
+} 
+
+// Show buttons
+void buttons() {
+  a1.show();
+  b1.show();
+  c1.show();
+  d1.show();
+}
+
+// Balls and built in move & show functions
+void balls() {
+  collision( a, b );
+  collision( a, c );
+  collision( a, d );
+  collision( a, e );
+  //if (cue.dx > 0) {
+  collision( a, cue);
+  //}
+  //
+  collision( b, c );
+  collision( b, d );
+  collision( b, e );
+  //if (cue.dx > 0) {
+  collision( b, cue);
+  //}
+  //
+  collision( c, d );
+  collision( c, e );
+  //if (cue.dx > 0) {
+  collision( c, cue);
+  //}
+  //
+  collision( d, e ); 
+  //if (cue.dx > 0) {
+  collision( d, cue);
+  //}
+  //
+  //if (cue.dx > 0) {
+  collision( e, cue);
+  //}
+  
+  a.show();
+  b.show();
+  c.show();
+  d.show();
+  e.show();
+  cue.show();
+  
+  a.move();
+  b.move();
+  c.move();
+  d.move();
+  e.move();
+  cue.move();
+}
+
+// Ball collisions
+void collision( Ball p, Ball q ) {
+  if ( p.hit( q.x,q.y ) ) {
+    float tmp;
+    tmp=p.dx;  p.dx=q.dx;  q.dx=tmp;      // Swap the velocities.
+    tmp=p.dy;  p.dy=q.dy;  q.dy=tmp;
+    score += 1;
+  }
+}
+
+// Call button class
+class Button {
+  float x,y,w,h;
+  String name="";
+  
+  void show() {
+    strokeWeight(1);
+    stroke(0);
+    fill(255, 215, 113);
+    rectMode( CORNER );
+    rect ( x,y,w,h, 7 );
+    fill(111, 103, 72);
+    text(name, x+13, y+25);
+  }
+}
+
+//// Call ball class
+class Ball {
+  float x,y, dx, dy;
+  int r,g,b;
+  int number;
+  String name="";
+  
+  void show() {
+    fill(r,g,b);
+    ellipse( x,y, 30,30);
+    fill(0);
+    text(name, x-3,y+4);
+  }
+  void move() {
+    // Wall collisions
+    if (wall == true && x<middle2+23) {
+      dx *= -1;
+    }
+    
+    // Limit collisions
+    x += dx;
+    if (x> right+50 || x< left-50) { dx = -dx; }
+    y += dy;
+    if (y>bottom+50 || y<top-50) { dy = -dy; }
+  }
+
+  void reset() {
+  x= random(middle2+40, right); y= random(top, bottom);
+  dx=  random( -3,3 );   dy=  random( -3,3 );
+  }
+  
+  // Ball collisions, cont'd
+  boolean hit( float x, float y ) {
+    if (dist( x,y, this.x,this.y ) < 30 ) return true;
+    else return false;
+  }  
+}
